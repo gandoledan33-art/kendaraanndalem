@@ -1796,6 +1796,7 @@
 
             // ==================== SELECT VEHICLE ====================
             window.selectVehicle = function(id) {
+                history.pushState({page: "detail"}, "", "");
                 window.selectedVehicleId = id;
                 const v = vehicles.find(v => v.id === id);
                 if (!v) return;
@@ -2688,6 +2689,20 @@
 
             // ==================== START ====================
             setTimeout(checkSession, 100);
+
+            // ==================== HANDLE ANDROID BACK BUTTON ====================
+            window.addEventListener("popstate", function (event) {
+            
+                // Jika sedang di detail kendaraan
+                const vehicleDetail = document.getElementById("vehicleDetail");
+            
+                if (!vehicleDetail.classList.contains("hidden")) {
+                    // kembali ke daftar kendaraan
+                    showVehiclesList();
+                    return;
+                }
+            
+            });
         })();
     </script>
 </body>
