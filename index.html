@@ -1,0 +1,2694 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AKHIRA - Aplikasi Kendaraan Ndalem Kharisma P3TQ</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Chart.js untuk grafik -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- jsPDF untuk export PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- html2canvas untuk convert HTML ke gambar -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- Axios untuk HTTP request -->
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+    
+    <!-- AutoNumeric untuk format angka otomatis -->
+    <script src="https://cdn.jsdelivr.net/npm/autonumeric@4.6.0/dist/autoNumeric.min.js"></script>
+    
+    <style>
+        * { -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        /* Grid layout */
+        .vehicles-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        @media (min-width: 768px) {
+            .vehicles-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 16px;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .vehicles-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 20px;
+            }
+        }
+        
+        /* Vehicle card - TANPA TOMBOL */
+        .vehicle-card {
+            background: white;
+            border-radius: 16px;
+            padding: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            transition: all 0.2s;
+        }
+        
+        .vehicle-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+            border-color: #3b82f6;
+        }
+        
+        .vehicle-image {
+            width: 100%;
+            aspect-ratio: 1/1;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f3f4f6;
+            margin-bottom: 10px;
+        }
+        
+        .vehicle-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .vehicle-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .vehicle-plate {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-bottom: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* Badge */
+        .badge {
+            padding: 4px 8px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        /* Vehicle footer - hanya badge dan total */
+        .vehicle-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 8px;
+        }
+        
+        .vehicle-total {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #059669;
+        }
+        
+        /* Detail stats */
+        .detail-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin: 16px 0;
+        }
+        
+        .stat-item {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+        }
+        
+        .stat-label {
+            font-size: 0.7rem;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+        
+        .stat-value {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+        
+        /* Detail actions */
+        .detail-actions {
+            display: flex;
+            gap: 8px;
+            margin: 16px 0;
+        }
+        
+        .detail-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .detail-btn.add {
+            background: #10b981;
+            color: white;
+        }
+        
+        .detail-btn.report {
+            background: #25D366;
+            color: white;
+        }
+        
+        .detail-btn.edit {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .detail-btn.pdf {
+            background: #ef4444;
+            color: white;
+        }
+        
+        /* Expense item */
+        .expense-item {
+            background: white;
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #f3f4f6;
+        }
+        
+        .expense-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        
+        .expense-date {
+            font-size: 0.7rem;
+            background: #f3f4f6;
+            padding: 3px 8px;
+            border-radius: 20px;
+            color: #4b5563;
+        }
+        
+        .expense-type {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #2563eb;
+            margin-left: 6px;
+        }
+        
+        .expense-cost {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+        
+        .expense-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #f3f4f6;
+        }
+        
+        .expense-btn {
+            font-size: 0.7rem;
+            padding: 5px 12px;
+            border-radius: 20px;
+            background: #f3f4f6;
+            color: #4b5563;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .expense-btn.whatsapp {
+            background: #25D366;
+            color: white;
+        }
+        
+        .expense-btn.edit {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .expense-btn.delete {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        
+        /* Tab styles */
+        .tabs-container {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            margin-top: 12px;
+            scrollbar-width: none;
+        }
+        
+        .tabs-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .tab {
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #64748b;
+            background: white;
+            border: 1px solid #e5e7eb;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        
+        .tab.active {
+            background: #3b82f6;
+            color: white;
+            border-color: transparent;
+        }
+        
+        /* Header actions */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .header-btn {
+            background: #ef4444;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            padding: 16px;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .modal-content.large {
+            max-width: 800px;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            cursor: pointer;
+            border: none;
+            font-size: 1.2rem;
+        }
+        
+        .modal-close:hover {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+        
+        /* Input */
+        .input-field {
+            width: 100%;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 0.95rem;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Input dengan format rupiah */
+        .input-rupiah {
+            width: 100%;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 0.95rem;
+            text-align: right;
+        }
+        
+        .input-rupiah:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Buttons */
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 500;
+            width: 100%;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-success {
+            background: #10b981;
+            color: white;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 500;
+            width: 100%;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-add {
+            background: #3b82f6;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-back {
+            background: white;
+            color: #4b5563;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            border: 1px solid #e5e7eb;
+            cursor: pointer;
+        }
+        
+        .btn-logout {
+            background: #ef4444;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            border: none;
+            cursor: pointer;
+        }
+        
+        /* Report container untuk PDF */
+        .report-container {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .report-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .report-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+        }
+        
+        .report-title {
+            flex: 1;
+        }
+        
+        .report-title h2 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+        
+        .report-title p {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .report-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .report-stat-card {
+            background: #f9fafb;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .report-stat-card h3 {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+        
+        .report-stat-card .number {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #1f2937;
+        }
+        
+        .report-stat-card .label {
+            font-size: 0.8rem;
+            color: #10b981;
+            margin-top: 5px;
+        }
+        
+        .report-chart {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 16px;
+        }
+        
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .report-table th {
+            background: #f3f4f6;
+            padding: 12px;
+            text-align: left;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #4b5563;
+        }
+        
+        .report-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.85rem;
+        }
+        
+        .report-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .report-footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e5e7eb;
+            text-align: right;
+            color: #6b7280;
+            font-size: 0.8rem;
+        }
+        
+        /* Alert */
+        .auto-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #10b981;
+            z-index: 100;
+            animation: slideIn 0.3s ease;
+            max-width: 350px;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Loading */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .user-email {
+            font-size: 0.7rem;
+            color: #6b7280;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        /* Chart container */
+        .chart-container {
+            height: 300px;
+            margin: 20px 0;
+        }
+        
+        /* Month filter */
+        .month-filter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+            padding: 10px;
+            background: #f9fafb;
+            border-radius: 12px;
+        }
+        
+        .month-filter select {
+            padding: 8px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+        
+        .tab-laporan:hover {
+            background: #dc2626;
+        }
+        
+        .tab-laporan{
+            background:#ef4444;
+            color:white;
+        }
+
+        .tab-tambah{
+            background:#10b981;
+            color:white;
+        }
+
+        .tab-tambah:hover{
+            background:#059669;
+        }
+        .tab{
+            font-size: 13px;
+            padding: 8px 12px;
+        }
+        .tab i{
+            font-size: 12px;
+        }
+
+        /* WA Settings */
+        .wa-settings {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .wa-settings h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #0369a1;
+            margin-bottom: 10px;
+        }
+        
+        .wa-settings .input-group {
+            margin-bottom: 12px;
+        }
+        
+        .wa-settings label {
+            font-size: 0.8rem;
+            color: #0369a1;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .wa-settings input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bae6fd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .wa-settings small {
+            font-size: 0.7rem;
+            color: #6b7280;
+            display: block;
+            margin-top: 5px;
+        }
+        
+        /* Test reminder button */
+        .test-reminder-btn {
+            background: #8b5cf6;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-right: 4px;
+        }
+        
+        .reminder-test-result {
+            background: #f3f4f6;
+            border-radius: 8px;
+            padding: 8px;
+            margin-top: 5px;
+            font-size: 0.7rem;
+            border-left: 3px solid #8b5cf6;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        /* Fonnte Config */
+        .fonnte-config {
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .fonnte-config h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 10px;
+        }
+        
+        .fonnte-config input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #fcd34d;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        /* Input wrapper untuk rupiah */
+        .rupiah-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        
+        .rupiah-wrapper::before {
+            content: "Rp";
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+            font-weight: 500;
+            z-index: 1;
+        }
+        
+        .rupiah-wrapper .input-rupiah {
+            padding-left: 40px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="bg-white p-8 rounded-2xl text-center">
+            <div class="loading-spinner mx-auto"></div>
+            <p id="loadingMessage" class="mt-4 text-gray-600">Memuat...</p>
+        </div>
+    </div>
+
+    <!-- Auto Alert Container -->
+    <div id="alertContainer" class="fixed top-4 right-4 z-[100] space-y-2"></div>
+
+    <!-- Auth Container -->
+    <div id="authContainer" class="container mx-auto px-4 py-8">
+        <div class="max-w-md mx-auto">
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                <!-- Header -->
+                <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-center">
+                    <h1 class="text-3xl font-bold text-white">
+                        <i class="fas fa-car mr-2"></i>AKHIRA
+                    </h1>
+                    <p class="text-blue-100 text-sm mt-2">Aplikasi Kendaraan Ndalem Kharisma P3TQ</p>
+                </div>
+                
+                <!-- Tab Login/Register -->
+                <div class="flex p-4 gap-2 border-b">
+                    <button id="tabLoginBtn" class="tab flex-1 active" onclick="showLoginTab()">
+                        <i class="fas fa-sign-in-alt mr-1"></i>Login
+                    </button>
+                    <button id="tabRegisterBtn" class="tab flex-1" onclick="showRegisterTab()">
+                        <i class="fas fa-user-plus mr-1"></i>Register
+                    </button>
+                </div>
+                
+                <!-- Login Form -->
+                <div id="loginForm" class="p-6">
+                    <div class="space-y-4">
+                        <input type="email" id="loginEmail" placeholder="Email" class="input-field">
+                        <input type="password" id="loginPassword" placeholder="Password" class="input-field">
+                        <button onclick="handleLogin()" class="btn-primary">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Login
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Register Form -->
+                <div id="registerForm" class="p-6 hidden">
+                    <div class="space-y-4">
+                        <input type="email" id="registerEmail" placeholder="Email" class="input-field">
+                        <input type="password" id="registerPassword" placeholder="Password (min 6 karakter)" class="input-field">
+                        <input type="password" id="registerConfirmPassword" placeholder="Konfirmasi Password" class="input-field">
+                        <button onclick="handleRegister()" class="btn-success">
+                            <i class="fas fa-user-plus mr-2"></i>Daftar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Container -->
+    <div id="appContainer" class="container mx-auto px-3 py-3 max-w-7xl hidden">
+        <!-- Header -->
+        <div class="bg-white rounded-xl p-3 mb-3 shadow-sm">
+            <div class="header">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-car text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-base font-bold">AKHIRA</h1>
+                        <p id="userEmail" class="user-email"></p>
+                    </div>
+                </div>
+                
+                <div class="header-actions">                    
+                    <button onclick="handleLogout()" class="btn-logout">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Keluar
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Tabs -->
+            <div class="tabs-container">
+                <button id="tabKendaraan" class="tab active" onclick="switchTab('kendaraan')">
+                    <i class="fas fa-car mr-1"></i>Kendaraan
+                </button>
+
+                <button id="tabReminder" class="tab" onclick="switchTab('reminder')">
+                    <i class="fas fa-bell mr-1"></i>Pengingat
+                </button>
+
+                <button id="tabConfig" class="tab" onclick="switchTab('config')">
+                    <i class="fas fa-cog mr-1"></i>Konfigurasi WA
+                </button>
+
+                <button id="btnLaporan" class="tab tab-laporan" onclick="showLaporanModal()">
+                    <i class="fas fa-file-pdf mr-1"></i>Laporan
+                </button>
+                
+                <button id="addVehicleBtn" class="tab tab-tambah" onclick="showAddVehicleModal()">
+                    <i class="fas fa-plus-circle"></i> Kendaraan
+                </button>
+            </div>
+        </div>
+
+        <!-- Content Kendaraan -->
+        <div id="contentKendaraan" class="block">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-3">
+                <button id="backToVehicles" class="btn-back hidden" onclick="showVehiclesList()">
+                    <i class="fas fa-arrow-left"></i>Kembali
+                </button>
+            </div>
+
+            <!-- Vehicles List -->
+            <div id="vehiclesList" class="block">
+                <div id="vehiclesGrid" class="vehicles-grid"></div>
+                <div id="noVehicles" class="text-center py-8 bg-white rounded-xl hidden">
+                    <i class="fas fa-car-side text-4xl text-gray-300 mb-2"></i>
+                    <p class="text-gray-500">Belum ada kendaraan</p>
+                </div>
+            </div>
+
+            <!-- Vehicle Detail -->
+            <div id="vehicleDetail" class="hidden">
+                <div class="bg-white rounded-xl p-4 mb-3">
+                    <div class="flex flex-col gap-4">
+                        <div class="w-full h-48 bg-gray-100 rounded-xl overflow-hidden">
+                            <img id="detailPhoto" class="w-full h-full object-contain" src="" alt="Vehicle">
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h2 id="detailName" class="text-xl font-bold"></h2>
+                                    <p id="detailPlate" class="text-sm text-gray-600"></p>
+                                    <p id="detailYear" class="text-xs text-gray-500 mt-1"></p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="editVehicle(selectedVehicleId)" class="detail-btn edit" style="padding: 8px 16px;">
+                                        <i class="fas fa-edit"></i>Edit
+                                    </button>
+                                    <button onclick="hapusVehicle(selectedVehicleId)" class="detail-btn delete" style="padding: 8px 16px;">
+                                        <i class="fas fa-trash"></i>Hapus
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="detail-stats">
+                                <div class="stat-item">
+                                    <div class="stat-label">Total</div>
+                                    <div id="detailTotal" class="stat-value text-blue-600">Rp0</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Servis</div>
+                                    <div id="detailCount" class="stat-value">0</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Rata-rata</div>
+                                    <div id="detailAverage" class="stat-value text-orange-600">Rp0</div>
+                                </div>
+                            </div>
+                            
+                            <div class="detail-actions">
+                                <button onclick="showAddExpenseModal()" class="detail-btn add">
+                                    <i class="fas fa-plus-circle"></i>Tambah
+                                </button>
+                                <button onclick="laporSemuaKeJuragan()" class="detail-btn report">
+                                    <i class="fab fa-whatsapp"></i>Lapor Semua
+                                </button>
+                            </div>
+                            
+                            <!-- Filter Bulan -->
+                            <div class="month-filter">
+                                <i class="fas fa-calendar-alt text-gray-500"></i>
+                                <select id="monthFilter" onchange="filterExpensesByMonth()" class="flex-1">
+                                    <option value="all">Semua Bulan</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expenses -->
+                <div class="bg-white rounded-xl p-4">
+                    <h3 class="font-semibold mb-3 flex items-center gap-2">
+                        <i class="fas fa-history text-blue-600"></i>Riwayat Pengeluaran
+                        <span id="expenseMonthBadge" class="text-xs bg-gray-100 px-2 py-1 rounded-full ml-2"></span>
+                    </h3>
+                    <div id="expensesList" class="space-y-2 max-h-96 overflow-y-auto"></div>
+                    <div id="noExpenses" class="text-center py-6 hidden">
+                        <p class="text-gray-400 text-sm">Belum ada pengeluaran</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Reminder -->
+        <div id="contentReminder" class="hidden">
+            <div class="bg-white rounded-xl p-4">
+                <h2 class="text-base font-bold mb-4">🔔 Pengingat</h2>
+                
+                <div class="bg-blue-50 p-4 rounded-xl mb-4">
+                    <h3 class="font-medium text-sm mb-3">Tambah Pengingat</h3>
+                    <div class="space-y-3">
+                        <select id="reminderVehicle" class="input-field">
+                            <option value="">Pilih Kendaraan</option>
+                        </select>
+                        <select id="reminderType" class="input-field">
+                            <option value="pajak_tahunan">📄 Pajak Tahunan</option>
+                            <option value="pajak_5_tahun">📋 Pajak 5 Tahun</option>
+                            <option value="pajak_ker">📑 Pajak KER</option>
+                            <option value="ganti_oli">🛢️ Ganti Oli</option>
+                            <option value="service_rutin">🔧 Service Rutin</option>
+                            <option value="spooring_balancing">⚙️ Spooring & Balancing</option>
+                            <option value="custom">📌 Pengingat Kustom</option>
+                        </select>
+                        <input type="text" id="reminderCustomName" placeholder="Nama Pengingat (jika kustom)" class="input-field hidden">
+                        <select id="reminderPeriod" class="input-field">
+                            <option value="1_minggu">🗓️ Setiap 1 minggu</option>
+                            <option value="2_minggu">🗓️ Setiap 2 minggu</option>
+                            <option value="1_bulan">📅 Setiap 1 bulan</option>
+                            <option value="3_bulan">📅 Setiap 3 bulan</option>
+                            <option value="6_bulan">📅 Setiap 6 bulan</option>
+                            <option value="1_tahun">📆 Setiap 1 tahun</option>
+                            <option value="5_tahun">📆 Setiap 5 tahun</option>
+                        </select>
+                        <input type="date" id="reminderStartDate" class="input-field" value="">
+                        <div>
+                            <label class="text-xs text-gray-600 mb-2 block">Pengingat:</label>
+                            <div class="flex gap-3">
+                                <label class="flex items-center gap-1">
+                                    <input type="checkbox" id="reminderH7" checked> H-7
+                                </label>
+                                <label class="flex items-center gap-1">
+                                    <input type="checkbox" id="reminderH1" checked> H-1
+                                </label>
+                                <label class="flex items-center gap-1">
+                                    <input type="checkbox" id="reminderH0" checked> H-0
+                                </label>
+                            </div>
+                        </div>
+                        <button onclick="tambahReminder()" class="btn-success">
+                            <i class="fas fa-plus-circle mr-1"></i>Tambah
+                        </button>
+                    </div>
+                </div>
+                
+                <h3 class="font-medium text-sm mb-2">Daftar Pengingat</h3>
+                <div id="reminderList" class="space-y-2"></div>
+            </div>
+        </div>
+
+        <!-- Content Konfigurasi WA -->
+        <div id="contentConfig" class="hidden">
+            <div class="bg-white rounded-xl p-4">
+                <h2 class="text-base font-bold mb-4">⚙️ Konfigurasi WhatsApp</h2>
+                
+                <!-- Fonnte Configuration -->
+                <div class="fonnte-config">
+                    <h3><i class="fas fa-key mr-1"></i> Token Fonnte</h3>
+                    <input type="text" id="fonnteToken" class="input-field" placeholder="Masukkan Token Fonnte Anda" value="">
+                    <small class="text-xs text-gray-500 mt-1 block">Dapatkan token dari dashboard Fonnte.com</small>
+                </div>
+                
+                <!-- Nomor WhatsApp Settings -->
+                <div class="wa-settings">
+                    <h3><i class="fas fa-phone mr-1"></i> Nomor WhatsApp</h3>
+                    
+                    <div class="input-group">
+                        <label>Nomor Saya (untuk Test Reminder)</label>
+                        <input type="text" id="myPhoneNumber" class="input-field" placeholder="Contoh: 08123456789" value="">
+                        <small>Nomor ini akan menerima test reminder</small>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Nomor Juragan (untuk Notifikasi Otomatis)</label>
+                        <input type="text" id="juraganPhoneNumber" class="input-field" placeholder="Contoh: 08123456789" value="">
+                        <small>Nomor ini akan menerima notifikasi setiap kali tambah pengeluaran</small>
+                    </div>
+                    
+                    <button onclick="testFonnteConnection()" class="btn-primary mt-2" style="background: #8b5cf6;">
+                        <i class="fas fa-plug mr-1"></i>Test Koneksi Fonnte
+                    </button>
+                </div>
+                
+                <div class="bg-yellow-50 p-4 rounded-xl mt-4">
+                    <h3 class="font-medium text-sm mb-2 flex items-center gap-2">
+                        <i class="fas fa-info-circle text-yellow-600"></i>
+                        Cara Mendapatkan Token Fonnte:
+                    </h3>
+                    <ol class="text-xs text-gray-600 list-decimal pl-5 space-y-1">
+                        <li>Daftar/Login di <a href="https://fonnte.com" target="_blank" class="text-blue-600">fonnte.com</a></li>
+                        <li>Masuk ke menu "Device"</li>
+                        <li>Scan QR Code untuk menghubungkan WhatsApp</li>
+                        <li>Copy Token yang ada di halaman tersebut</li>
+                        <li>Pastikan nomor tujuan sudah menyimpan nomor Fonnte</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Pilih Periode Laporan -->
+    <div id="modalLaporan" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('modalLaporan')">✕</button>
+            <h3 class="text-lg font-bold mb-4">📅 Pilih Periode Laporan</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs text-gray-600 mb-1 block">Dari Tanggal</label>
+                    <input type="date" id="laporanStartDate" class="input-field">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-600 mb-1 block">Sampai Tanggal</label>
+                    <input type="date" id="laporanEndDate" class="input-field">
+                </div>
+                <button onclick="generateLaporanSemua()" class="btn-primary">
+                    <i class="fas fa-file-pdf mr-2"></i>Buat Laporan PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tambah Kendaraan -->
+    <div id="modalVehicle" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('modalVehicle')">✕</button>
+            <h3 class="text-lg font-bold mb-4">➕ Tambah Kendaraan</h3>
+            <form id="vehicleForm" class="space-y-3">
+                <input type="text" id="vehicleName" placeholder="Nama Kendaraan" required class="input-field">
+                <input type="text" id="vehiclePlate" placeholder="Nomor Polisi" required class="input-field">
+                <input type="number" id="vehicleYear" placeholder="Tahun" class="input-field">
+                <div>
+                    <label class="text-xs text-gray-600 mb-1 block">Foto (opsional)</label>
+                    <input type="file" id="vehiclePhoto" accept="image/*" class="text-sm w-full">
+                </div>
+                <button type="submit" class="btn-primary">Simpan</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Edit Kendaraan -->
+    <div id="modalEditVehicle" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('modalEditVehicle')">✕</button>
+            <h3 class="text-lg font-bold mb-4">✏️ Edit Kendaraan</h3>
+            <form id="editVehicleForm" class="space-y-3">
+                <input type="hidden" id="editVehicleId">
+                <input type="text" id="editVehicleName" placeholder="Nama Kendaraan" required class="input-field">
+                <input type="text" id="editVehiclePlate" placeholder="Nomor Polisi" required class="input-field">
+                <input type="number" id="editVehicleYear" placeholder="Tahun" class="input-field">
+                <div>
+                    <label class="text-xs text-gray-600 mb-1 block">Foto (opsional)</label>
+                    <input type="file" id="editVehiclePhoto" accept="image/*" class="text-sm w-full">
+                </div>
+                <button type="submit" class="btn-primary">Update</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Tambah Pengeluaran dengan Format Rupiah -->
+    <div id="modalExpense" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('modalExpense')">✕</button>
+            <h3 class="text-lg font-bold mb-4">💰 Tambah Pengeluaran</h3>
+            <form id="expenseForm" class="space-y-3">
+                <input type="date" id="expenseDate" required class="input-field">
+                <select id="expenseType" required class="input-field">
+                    <option value="">Pilih Jenis</option>
+                    <option value="Service Rutin">🔧 Service Rutin</option>
+                    <option value="Ganti Oli">🛢️ Ganti Oli</option>
+                    <option value="Pajak Tahunan">📄 Pajak Tahunan</option>
+                    <option value="Pajak 5 Tahun">📋 Pajak 5 Tahun</option>
+                    <option value="Pajak KER">📑 Pajak KER</option>
+                    <option value="Spooring & Balancing">⚙️ Spooring & Balancing</option>
+                    <option value="Bensin">⛽ Bensin</option>
+                    <option value="Perbaikan">🔨 Perbaikan</option>
+                </select>
+                
+                <!-- Input Biaya dengan Format Rupiah -->
+                <div class="rupiah-wrapper">
+                    <input type="text" id="expenseCost" placeholder="0" required class="input-rupiah" inputmode="numeric">
+                </div>
+                
+                <input type="text" id="expenseDesc" placeholder="Deskripsi" class="input-field">
+                <input type="number" id="expenseKm" placeholder="KM" class="input-field">
+                <div>
+                    <label class="text-xs text-gray-600 mb-1 block">Foto Struk</label>
+                    <input type="file" id="expensePhoto" accept="image/*" class="text-sm w-full">
+                </div>
+                <button type="submit" class="btn-success">Simpan</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Edit Pengeluaran dengan Format Rupiah -->
+    <div id="modalEditExpense" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('modalEditExpense')">✕</button>
+            <h3 class="text-lg font-bold mb-4">✏️ Edit Pengeluaran</h3>
+            <form id="editExpenseForm" class="space-y-3">
+                <input type="hidden" id="editExpenseId">
+                <input type="date" id="editExpenseDate" required class="input-field">
+                <select id="editExpenseType" required class="input-field">
+                    <option value="">Pilih Jenis</option>
+                    <option value="Service Rutin">🔧 Service Rutin</option>
+                    <option value="Ganti Oli">🛢️ Ganti Oli</option>
+                    <option value="Pajak Tahunan">📄 Pajak Tahunan</option>
+                    <option value="Pajak 5 Tahun">📋 Pajak 5 Tahun</option>
+                    <option value="Pajak KER">📑 Pajak KER</option>
+                    <option value="Spooring & Balancing">⚙️ Spooring & Balancing</option>
+                    <option value="Bensin">⛽ Bensin</option>
+                    <option value="Perbaikan">🔨 Perbaikan</option>
+                </select>
+                
+                <!-- Input Biaya dengan Format Rupiah -->
+                <div class="rupiah-wrapper">
+                    <input type="text" id="editExpenseCost" placeholder="0" required class="input-rupiah" inputmode="numeric">
+                </div>
+                
+                <input type="text" id="editExpenseDesc" placeholder="Deskripsi" class="input-field">
+                <input type="number" id="editExpenseKm" placeholder="KM" class="input-field">
+                <div>
+                    <label class="text-xs text-gray-600 mb-1 block">Foto Struk</label>
+                    <input type="file" id="editExpensePhoto" accept="image/*" class="text-sm w-full">
+                </div>
+                <button type="submit" class="btn-primary">Update</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Lihat Foto -->
+    <div id="modalPhoto" class="modal-overlay" style="background: rgba(0,0,0,0.9);">
+        <div class="relative max-w-2xl w-full">
+            <button class="modal-close bg-white" onclick="closeModal('modalPhoto')">✕</button>
+            <img id="photoViewer" src="" class="w-full h-auto rounded-lg">
+        </div>
+    </div>
+
+    <!-- Hidden Report Container untuk PDF -->
+    <div id="reportContainer" style="position: absolute; left: -9999px; top: 0;">
+        <div class="report-container">
+            <div class="report-header">
+                <div class="report-logo">
+                    <i class="fas fa-car"></i>
+                </div>
+                <div class="report-title">
+                    <h2 id="reportVehicleName">Laporan Kendaraan</h2>
+                    <p id="reportVehiclePlate"></p>
+                    <p id="reportDate"></p>
+                </div>
+            </div>
+            
+            <div class="report-stats">
+                <div class="report-stat-card">
+                    <h3>Total Pengeluaran</h3>
+                    <div class="number" id="reportTotal">Rp0</div>
+                    <div class="label">Keseluruhan</div>
+                </div>
+                <div class="report-stat-card">
+                    <h3>Jumlah Transaksi</h3>
+                    <div class="number" id="reportCount">0</div>
+                    <div class="label">Servis</div>
+                </div>
+                <div class="report-stat-card">
+                    <h3>Rata-rata</h3>
+                    <div class="number" id="reportAverage">Rp0</div>
+                    <div class="label">Per Transaksi</div>
+                </div>
+            </div>
+            
+            <div class="report-chart">
+                <canvas id="reportChart" width="400" height="200"></canvas>
+            </div>
+            
+            <h3 style="font-size: 1.2rem; font-weight: bold; margin-bottom: 15px;">Detail Transaksi</h3>
+            <table class="report-table" id="reportTable">
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Kendaraan</th>
+                        <th>Jenis</th>
+                        <th>Deskripsi</th>
+                        <th>KM</th>
+                        <th>Biaya</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody"></tbody>
+            </table>
+            
+            <div class="report-footer">
+                <p>Dicetak pada: <span id="reportPrintDate"></span></p>
+                <p>© 2026 AKHIRA - Aplikasi Kendaraan Ndalem Kharisma P3TQ</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== KONFIGURASI ====================
+        (function() {
+            // Supabase config
+            const SUPABASE_URL = 'https://cgmqmvffpepwakrhagno.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnbXFtdmZmcGVwd2FrcmhhZ25vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4ODI3NjEsImV4cCI6MjA4ODQ1ODc2MX0.aBmS5ykLVtwht_yXBqVc7tCKAGuR9I7kseOSMpfleE0';
+            
+            // Inisialisasi Supabase Client
+            const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            // ==================== GLOBAL VARIABLES ====================
+            let currentUser = null;
+            let vehicles = [];
+            let expenses = [];
+            let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+            window.selectedVehicleId = null;
+            let reportChart = null;
+            let currentMonthFilter = 'all';
+
+            // ==================== FUNGSI FORMAT RUPIAH ====================
+            function formatRupiah(angka, prefix = 'Rp') {
+                if (!angka && angka !== 0) return 'Rp 0';
+                
+                // Hapus semua karakter non-digit
+                let number = angka.toString().replace(/[^\d]/g, '');
+                
+                // Konversi ke number
+                number = parseInt(number, 10);
+                if (isNaN(number)) return 'Rp 0';
+                
+                // Format dengan titik ribuan
+                let formatted = number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                
+                return prefix + ' ' + formatted;
+            }
+
+            function parseRupiah(value) {
+                if (!value) return 0;
+                
+                // Hapus semua karakter non-digit (titik, Rp, spasi)
+                let number = value.toString().replace(/[^\d]/g, '');
+                
+                // Konversi ke integer
+                return parseInt(number, 10) || 0;
+            }
+
+            // ==================== INIT FORMAT RUPIAH INPUT ====================
+            function initRupiahInput(inputElement) {
+                if (!inputElement) return;
+                
+                // Saat input kehilangan fokus, format nilainya
+                inputElement.addEventListener('blur', function(e) {
+                    let value = parseRupiah(this.value);
+                    if (value > 0) {
+                        this.value = formatRupiah(value, '').trim(); // Format tanpa prefix Rp (karena sudah ada wrapper)
+                    } else {
+                        this.value = '';
+                    }
+                });
+                
+                // Saat input mendapatkan fokus, kembalikan ke angka tanpa titik
+                inputElement.addEventListener('focus', function(e) {
+                    let value = parseRupiah(this.value);
+                    if (value > 0) {
+                        this.value = value;
+                    }
+                });
+                
+                // Saat mengetik, hanya izinkan angka
+                inputElement.addEventListener('keyup', function(e) {
+                    // Hapus semua karakter non-digit saat mengetik
+                    let raw = this.value.replace(/[^\d]/g, '');
+                    if (raw) {
+                        this.value = raw;
+                    }
+                });
+                
+                // Cegah karakter non-digit
+                inputElement.addEventListener('keydown', function(e) {
+                    // Izinkan: backspace, delete, tab, escape, enter, arrow keys
+                    if (e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Tab' || 
+                        e.key === 'Escape' || e.key === 'Enter' || e.key === 'ArrowLeft' || 
+                        e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                        return; // izinkan
+                    }
+                    
+                    // Izinkan angka 0-9
+                    if (e.key.match(/[0-9]/)) {
+                        return; // izinkan
+                    }
+                    
+                    // Cegah karakter lain
+                    e.preventDefault();
+                });
+            }
+
+            // ==================== FUNGSI LOADING KONFIGURASI ====================
+            function loadConfig() {
+                const savedToken = localStorage.getItem('fonnteToken') || '';
+                const savedMyPhone = localStorage.getItem('myPhoneNumber') || '';
+                const savedJuraganPhone = localStorage.getItem('juraganPhoneNumber') || '';
+                
+                document.getElementById('fonnteToken').value = savedToken;
+                document.getElementById('myPhoneNumber').value = savedMyPhone;
+                document.getElementById('juraganPhoneNumber').value = savedJuraganPhone;
+            }
+
+            function saveConfig() {
+                const token = document.getElementById('fonnteToken').value;
+                const myPhone = document.getElementById('myPhoneNumber').value;
+                const juraganPhone = document.getElementById('juraganPhoneNumber').value;
+                
+                localStorage.setItem('fonnteToken', token);
+                localStorage.setItem('myPhoneNumber', myPhone);
+                localStorage.setItem('juraganPhoneNumber', juraganPhone);
+            }
+
+            // ==================== FUNGSI KIRIM WA VIA FONNTE ====================
+            async function sendWAviaFonnte(targetNumber, message) {
+                const token = document.getElementById('fonnteToken').value;
+                
+                if (!token) {
+                    showAlert('Token Fonnte belum diisi!', 'error');
+                    return false;
+                }
+                
+                if (!targetNumber) {
+                    showAlert('Nomor tujuan belum diisi!', 'error');
+                    return false;
+                }
+                
+                // Format nomor (hapus spasi, strip, dan tambah kode negara jika perlu)
+                let formattedNumber = targetNumber.replace(/\D/g, '');
+                if (formattedNumber.startsWith('0')) {
+                    formattedNumber = '62' + formattedNumber.substring(1);
+                }
+                
+                try {
+                    const response = await axios({
+                        method: 'post',
+                        url: 'https://api.fonnte.com/send',
+                        headers: {
+                            'Authorization': token
+                        },
+                        data: {
+                            target: formattedNumber,
+                            message: message,
+                            countryCode: '62'
+                        }
+                    });
+                    
+                    console.log('Fonnte response:', response.data);
+                    
+                    if (response.data && response.data.status) {
+                        return true;
+                    } else {
+                        throw new Error(response.data.reason || 'Gagal mengirim pesan');
+                    }
+                } catch (error) {
+                    console.error('Fonnte error:', error);
+                    showAlert('Gagal kirim WA: ' + (error.response?.data?.reason || error.message), 'error');
+                    return false;
+                }
+            }
+
+            // ==================== FUNGSI TEST KONEKSI FONNTE ====================
+            window.testFonnteConnection = async function() {
+                const myPhone = document.getElementById('myPhoneNumber').value;
+                
+                if (!myPhone) {
+                    showAlert('Isi dulu nomor WhatsApp Anda', 'warning');
+                    return;
+                }
+                
+                showLoading(true, 'Mengirim test pesan...');
+                
+                const testMessage = `✅ *TEST KONEKSI FONNTE BERHASIL*\n\n` +
+                    `Halo! Ini adalah pesan test dari Aplikasi AKHIRA.\n` +
+                    `Jika Anda menerima pesan ini, berarti konfigurasi Fonnte sudah benar.\n\n` +
+                    `Waktu: ${new Date().toLocaleString('id-ID')}`;
+                
+                const success = await sendWAviaFonnte(myPhone, testMessage);
+                
+                if (success) {
+                    showAlert('Test pesan terkirim! Cek WhatsApp Anda.', 'success');
+                    saveConfig();
+                }
+                
+                showLoading(false);
+            };
+
+            // ==================== FUNGSI TEST REMINDER ====================
+            window.testReminderWA = async function(reminder) {
+                const myPhone = document.getElementById('myPhoneNumber').value;
+                
+                if (!myPhone) {
+                    showAlert('Isi dulu nomor WhatsApp Anda di menu Konfigurasi', 'warning');
+                    switchTab('config');
+                    return;
+                }
+                
+                const vehicle = vehicles.find(v => v.id === reminder.vehicle_id);
+                if (!vehicle) return;
+                
+                showLoading(true, 'Mengirim test reminder...');
+                
+                const periodLabels = {
+                    '1_minggu': 'Setiap 1 minggu',
+                    '2_minggu': 'Setiap 2 minggu',
+                    '1_bulan': 'Setiap 1 bulan',
+                    '3_bulan': 'Setiap 3 bulan',
+                    '6_bulan': 'Setiap 6 bulan',
+                    '1_tahun': 'Setiap 1 tahun',
+                    '5_tahun': 'Setiap 5 tahun'
+                };
+                
+                const reminders_active = [];
+                if (reminder.h7) reminders_active.push('H-7');
+                if (reminder.h1) reminders_active.push('H-1');
+                if (reminder.h0) reminders_active.push('H-0');
+                
+                let msg = `🔔 *TEST PENGINGAT*\n\n`;
+                msg += `Kendaraan: ${vehicle.name} (${vehicle.plate})\n`;
+                msg += `Jenis: ${reminder.typeLabel || reminder.type}\n`;
+                msg += `Periode: ${periodLabels[reminder.period] || reminder.period}\n`;
+                msg += `Pengingat: ${reminders_active.join(', ')}\n`;
+                msg += `\nIni adalah notifikasi test dari aplikasi AKHIRA.\n`;
+                msg += `Jika Anda menerima ini, berarti sistem reminder berfungsi.`;
+                
+                const success = await sendWAviaFonnte(myPhone, msg);
+                
+                if (success) {
+                    showAlert('Test reminder terkirim!', 'success');
+                }
+                
+                showLoading(false);
+            };
+
+            // ==================== AUTO KIRIM WA KE JURAGAN ====================
+            async function sendExpenseNotification(expense) {
+                const juraganPhone = document.getElementById('juraganPhoneNumber').value;
+                
+                if (!juraganPhone) {
+                    console.log('Nomor juragan belum diisi, lewati notifikasi');
+                    return;
+                }
+                
+                const vehicle = vehicles.find(v => v.id === expense.vehicle_id);
+                if (!vehicle) return;
+                
+                let msg = `🚗 *PENGELUARAN BARU DICATAT*\n\n`;
+                msg += `Kendaraan: ${vehicle.name} (${vehicle.plate})\n`;
+                msg += `Tanggal: ${formatDate(expense.date)}\n`;
+                msg += `Jenis: ${expense.type}\n`;
+                msg += `Biaya: ${formatRupiah(expense.cost)}\n`;
+                if (expense.description) msg += `Deskripsi: ${expense.description}\n`;
+                if (expense.km) msg += `KM: ${expense.km}\n`;
+                if (expense.photo_url) msg += `📸 Ada foto struk\n`;
+                msg += `\nDicatat oleh: ${currentUser ? currentUser.email : 'Pengguna'}`;
+                
+                await sendWAviaFonnte(juraganPhone, msg);
+            }
+
+            // ==================== FUNGSI ALERT ====================
+            function showAlert(message, type = 'success', duration = 3000) {
+                const container = document.getElementById('alertContainer');
+                const id = 'alert-' + Date.now();
+                
+                const colors = {
+                    success: 'border-green-500 bg-green-50 text-green-800',
+                    error: 'border-red-500 bg-red-50 text-red-800',
+                    warning: 'border-yellow-500 bg-yellow-50 text-yellow-800',
+                    info: 'border-blue-500 bg-blue-50 text-blue-800'
+                };
+                
+                const icons = {
+                    success: 'fa-check-circle',
+                    error: 'fa-exclamation-circle',
+                    warning: 'fa-exclamation-triangle',
+                    info: 'fa-info-circle'
+                };
+                
+                const html = `
+                    <div id="${id}" class="auto-alert ${colors[type]}">
+                        <div class="flex items-center gap-2">
+                            <i class="fas ${icons[type]}"></i>
+                            <p class="text-sm">${message}</p>
+                            <button onclick="document.getElementById('${id}').remove()" class="ml-auto">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                container.insertAdjacentHTML('beforeend', html);
+                
+                if (duration > 0) {
+                    setTimeout(() => {
+                        const el = document.getElementById(id);
+                        if (el) el.remove();
+                    }, duration);
+                }
+            }
+
+            // ==================== FUNGSI LOADING ====================
+            function showLoading(show, message = 'Memuat...') {
+                document.getElementById('loadingMessage').innerText = message;
+                document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+            }
+
+            // ==================== FUNGSI FORMAT TANGGAL ====================
+            function formatDate(dateStr) {
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+            }
+
+            function formatDateISO(date) {
+                return date.toISOString().split('T')[0];
+            }
+
+            function getCurrentMonth() {
+                const date = new Date();
+                return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            }
+
+            function getFirstDayOfMonth() {
+                const date = new Date();
+                return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`;
+            }
+
+            function getTodayDate() {
+                return new Date().toISOString().split('T')[0];
+            }
+
+            // ==================== RELOAD DATA ====================
+            async function reloadData() {
+                if (!currentUser) return;
+                
+                try {
+                    const { data: vData } = await sb
+                        .from('vehicles')
+                        .select('*')
+                        .eq('user_id', currentUser.id);
+                    vehicles = vData || [];
+                    
+                    const { data: eData } = await sb
+                        .from('expenses')
+                        .select('*')
+                        .eq('user_id', currentUser.id);
+                    expenses = eData || [];
+                    
+                    renderVehicles();
+                    renderReminderDropdown();
+                    renderReminderList();
+                    
+                    if (selectedVehicleId) {
+                        renderExpenses();
+                    }
+                    
+                } catch (error) {
+                    console.error('Reload error:', error);
+                }
+            }
+
+            // ==================== CLOSE MODAL ====================
+            window.closeModal = function(modalId) {
+                document.getElementById(modalId).style.display = 'none';
+            };
+
+            // ==================== CEK SESSION ====================
+            async function checkSession() {
+                showLoading(true);
+                try {
+                    const { data } = await sb.auth.getSession();
+                    
+                    if (data.session) {
+                        currentUser = data.session.user;
+                        document.getElementById('userEmail').innerText = currentUser.email;
+                        
+                        document.getElementById('authContainer').classList.add('hidden');
+                        document.getElementById('appContainer').classList.remove('hidden');
+                        
+                        await reloadData();
+                        loadConfig();
+                        
+                        const monthFilter = document.getElementById('monthFilter');
+                        if (monthFilter) {
+                            const currentMonth = getCurrentMonth();
+                            monthFilter.value = currentMonth;
+                            currentMonthFilter = currentMonth;
+                        }
+
+                        const startDateInput = document.getElementById('laporanStartDate');
+                        const endDateInput = document.getElementById('laporanEndDate');
+                        if (startDateInput && endDateInput) {
+                            startDateInput.value = getFirstDayOfMonth();
+                            endDateInput.value = getTodayDate();
+                        }
+
+                        const reminderDate = document.getElementById('reminderStartDate');
+                        if (reminderDate) {
+                            reminderDate.value = getTodayDate();
+                        }
+                        
+                        // Inisialisasi format rupiah pada input
+                        setTimeout(() => {
+                            initRupiahInput(document.getElementById('expenseCost'));
+                            initRupiahInput(document.getElementById('editExpenseCost'));
+                        }, 500);
+                        
+                        showAlert('Selamat datang kembali!', 'success', 2000);
+                    }
+                } catch (error) {
+                    console.error('Session error:', error);
+                } finally {
+                    showLoading(false);
+                }
+            }
+
+            // ==================== RENDER VEHICLES ====================
+            function renderVehicles() {
+                const grid = document.getElementById('vehiclesGrid');
+                const noVehicles = document.getElementById('noVehicles');
+                
+                if (vehicles.length === 0) {
+                    grid.innerHTML = '';
+                    noVehicles.classList.remove('hidden');
+                    return;
+                }
+                
+                noVehicles.classList.add('hidden');
+                
+                let html = '';
+                vehicles.forEach(v => {
+                    const total = expenses.filter(e => e.vehicle_id === v.id).reduce((sum, e) => sum + e.cost, 0);
+                    const count = expenses.filter(e => e.vehicle_id === v.id).length;
+                    const initial = v.name ? v.name.charAt(0).toUpperCase() : 'K';
+                    const photo = v.photo_url || `https://placehold.co/200/3b82f6/white?text=${initial}`;
+                    
+                    html += `
+                        <div class="vehicle-card" onclick="selectVehicle(${v.id})">
+                            <div class="vehicle-image">
+                                <img src="${photo}" alt="${v.name}" onerror="this.src='https://placehold.co/200/3b82f6/white?text=${initial}'">
+                            </div>
+                            <div class="vehicle-content">
+                                <h3 class="vehicle-name">${v.name}</h3>
+                                <p class="vehicle-plate">${v.plate}</p>
+                                <div class="vehicle-footer">
+                                    <span class="badge badge-success">
+                                        ${count} transaksi
+                                    </span>
+                                    <span class="vehicle-total">${formatRupiah(total)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                grid.innerHTML = html;
+            }
+
+            // ==================== SELECT VEHICLE ====================
+            window.selectVehicle = function(id) {
+                window.selectedVehicleId = id;
+                const v = vehicles.find(v => v.id === id);
+                if (!v) return;
+                
+                const initial = v.name.charAt(0).toUpperCase();
+                document.getElementById('detailPhoto').src = v.photo_url || `https://placehold.co/400/3b82f6/white?text=${initial}`;
+                document.getElementById('detailName').innerText = v.name;
+                document.getElementById('detailPlate').innerText = v.plate;
+                document.getElementById('detailYear').innerText = v.year || 'Tahun tidak tersedia';
+                
+                document.getElementById('vehiclesList').classList.add('hidden');
+                document.getElementById('vehicleDetail').classList.remove('hidden');
+                document.getElementById('backToVehicles').classList.remove('hidden');
+                document.getElementById('addVehicleBtn').classList.add('hidden');
+                
+                const monthFilter = document.getElementById('monthFilter');
+                monthFilter.innerHTML = '<option value="all">Semua Bulan</option>';
+                
+                const months = new Set();
+                expenses.filter(e => e.vehicle_id === id).forEach(e => {
+                    const month = e.date.substring(0, 7);
+                    months.add(month);
+                });
+                
+                Array.from(months).sort().reverse().forEach(month => {
+                    const [year, m] = month.split('-');
+                    const option = document.createElement('option');
+                    option.value = month;
+                    option.textContent = new Date(year, m-1).toLocaleDateString('id-ID', { year: 'numeric', month: 'long' });
+                    monthFilter.appendChild(option);
+                });
+                
+                const currentMonth = getCurrentMonth();
+                if (months.has(currentMonth)) {
+                    monthFilter.value = currentMonth;
+                    currentMonthFilter = currentMonth;
+                } else {
+                    currentMonthFilter = 'all';
+                }
+                
+                renderExpenses();
+            };
+
+            window.showVehiclesList = function() {
+                document.getElementById('vehiclesList').classList.remove('hidden');
+                document.getElementById('vehicleDetail').classList.add('hidden');
+                document.getElementById('backToVehicles').classList.remove('hidden');
+                document.getElementById('addVehicleBtn').classList.remove('hidden');
+                selectedVehicleId = null;
+            };
+
+            // ==================== FILTER EXPENSES BY MONTH ====================
+            window.filterExpensesByMonth = function() {
+                const filter = document.getElementById('monthFilter');
+                currentMonthFilter = filter.value;
+                
+                const badge = document.getElementById('expenseMonthBadge');
+                if (currentMonthFilter === 'all') {
+                    badge.innerText = 'Semua Bulan';
+                } else {
+                    const [year, month] = currentMonthFilter.split('-');
+                    const date = new Date(year, month-1);
+                    badge.innerText = date.toLocaleDateString('id-ID', { year: 'numeric', month: 'long' });
+                }
+                
+                renderExpenses();
+            };
+
+            // ==================== RENDER EXPENSES ====================
+            function renderExpenses() {
+                if (!selectedVehicleId) return;
+                
+                let vehicleExpenses = expenses
+                    .filter(e => e.vehicle_id === selectedVehicleId)
+                    .sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                if (currentMonthFilter !== 'all') {
+                    vehicleExpenses = vehicleExpenses.filter(e => e.date.startsWith(currentMonthFilter));
+                }
+                
+                const total = vehicleExpenses.reduce((sum, e) => sum + e.cost, 0);
+                const count = vehicleExpenses.length;
+                const average = count > 0 ? Math.round(total / count) : 0;
+                
+                document.getElementById('detailTotal').innerText = formatRupiah(total);
+                document.getElementById('detailCount').innerText = count;
+                document.getElementById('detailAverage').innerText = formatRupiah(average);
+                
+                const list = document.getElementById('expensesList');
+                const noExpenses = document.getElementById('noExpenses');
+                
+                if (vehicleExpenses.length === 0) {
+                    list.innerHTML = '';
+                    noExpenses.classList.remove('hidden');
+                    return;
+                }
+                
+                noExpenses.classList.add('hidden');
+                
+                let html = '';
+                vehicleExpenses.forEach(e => {
+                    html += `
+                        <div class="expense-item">
+                            <div class="expense-header">
+                                <div>
+                                    <span class="expense-date">${formatDate(e.date)}</span>
+                                    <span class="expense-type">${e.type}</span>
+                                </div>
+                                <span class="expense-cost">${formatRupiah(e.cost)}</span>
+                            </div>
+                            
+                            ${e.description ? `<p class="text-xs text-gray-500 mt-1">${e.description}</p>` : ''}
+                            ${e.km ? `<p class="text-xs text-gray-400">KM: ${e.km}</p>` : ''}
+                            
+                            <div class="expense-actions">
+                                ${e.photo_url ? 
+                                    `<button class="expense-btn" onclick="lihatFoto('${e.photo_url}')">
+                                        <i class="fas fa-image"></i>Foto
+                                    </button>` : ''}
+                                
+                                <button class="expense-btn edit" onclick="editExpense(${e.id})">
+                                    <i class="fas fa-edit"></i>Edit
+                                </button>
+                                
+                                <button class="expense-btn delete" onclick="hapusExpense(${e.id})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                list.innerHTML = html;
+            }
+
+            // ==================== SHOW MODAL LAPORAN ====================
+            window.showLaporanModal = function() {
+                document.getElementById('laporanStartDate').value = getFirstDayOfMonth();
+                document.getElementById('laporanEndDate').value = getTodayDate();
+                document.getElementById('modalLaporan').style.display = 'flex';
+            };
+
+            // ==================== GENERATE LAPORAN SEMUA KENDARAAN ====================
+            window.generateLaporanSemua = async function() {
+                const btn = document.getElementById('btnLaporan');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Download...';
+                btn.disabled = true;
+    
+                if (vehicles.length === 0) {
+                    showAlert('Belum ada kendaraan', 'warning');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    return;
+                }
+
+                const startDate = document.getElementById('laporanStartDate').value;
+                const endDate = document.getElementById('laporanEndDate').value;
+
+                if (!startDate || !endDate) {
+                    showAlert('Pilih periode tanggal terlebih dahulu', 'warning');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    return;
+                }
+
+                closeModal('modalLaporan');
+                
+                try {
+                    const filteredExpenses = expenses.filter(e => {
+                        return e.date >= startDate && e.date <= endDate;
+                    });
+
+                    if (filteredExpenses.length === 0) {
+                        showAlert('Tidak ada data pada periode tersebut', 'info');
+                        return;
+                    }
+                    
+                    let totalKendaraan = vehicles.length;
+                    let totalTransaksi = filteredExpenses.length;
+                    let totalBiaya = filteredExpenses.reduce((sum, e) => sum + e.cost, 0);
+                    let avg = totalTransaksi > 0 ? Math.round(totalBiaya / totalTransaksi) : 0;
+                    
+                    document.getElementById('reportVehicleName').innerText = 'LAPORAN SEMUA KENDARAAN';
+                    document.getElementById('reportVehiclePlate').innerText = `Total Kendaraan: ${totalKendaraan}`;
+                    document.getElementById('reportDate').innerText = `Periode: ${formatDate(startDate)} - ${formatDate(endDate)}`;
+                    document.getElementById('reportTotal').innerText = formatRupiah(totalBiaya);
+                    document.getElementById('reportCount').innerText = totalTransaksi;
+                    document.getElementById('reportAverage').innerText = formatRupiah(avg);
+                    document.getElementById('reportPrintDate').innerText = formatDate(new Date().toISOString());
+                    
+                    let tableBody = '';
+                    filteredExpenses.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(e => {
+                        const v = vehicles.find(v => v.id === e.vehicle_id);
+                        tableBody += `
+                            <tr>
+                                <td>${formatDate(e.date)}</td>
+                                <td>${v ? v.name : '-'}</td>
+                                <td>${e.type}</td>
+                                <td>${e.description || '-'}</td>
+                                <td>${e.km || '-'}</td>
+                                <td>${formatRupiah(e.cost)}</td>
+                            </tr>
+                        `;
+                    });
+                    document.getElementById('reportTableBody').innerHTML = tableBody;
+                    
+                    await createAllVehiclesChart(filteredExpenses);
+                    
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    const reportElement = document.getElementById('reportContainer');
+                    const canvas = await html2canvas(reportElement, {
+                        scale: 2,
+                        backgroundColor: '#ffffff',
+                        logging: false
+                    });
+                    
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+                    
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgWidth = 210;
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    
+                    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                    pdf.save(`Laporan_Semua_Kendaraan_${formatDateISO(new Date())}.pdf`);
+                    
+                    showAlert('Laporan semua kendaraan berhasil diunduh', 'success');
+                    
+                } catch (error) {
+                    console.error('PDF generation error:', error);
+                    showAlert('Gagal membuat PDF', 'error');
+                } finally {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            };
+
+            // ==================== CREATE ALL VEHICLES CHART ====================
+            async function createAllVehiclesChart(filteredExpenses) {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        try {
+                            const vehicleTotals = {};
+                            vehicles.forEach(v => {
+                                const total = filteredExpenses
+                                    .filter(e => e.vehicle_id === v.id)
+                                    .reduce((sum, e) => sum + e.cost, 0);
+                                if (total > 0) {
+                                    vehicleTotals[v.name] = total;
+                                }
+                            });
+                            
+                            const labels = Object.keys(vehicleTotals);
+                            const values = Object.values(vehicleTotals);
+                            
+                            if (reportChart) {
+                                reportChart.destroy();
+                            }
+                            
+                            if (labels.length > 0) {
+                                const ctx = document.getElementById('reportChart').getContext('2d');
+                                reportChart = new Chart(ctx, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: labels,
+                                        datasets: [{
+                                            label: 'Total Pengeluaran',
+                                            data: values,
+                                            backgroundColor: '#3b82f6',
+                                            borderRadius: 8
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: true,
+                                        plugins: {
+                                            legend: { display: false },
+                                            title: {
+                                                display: true,
+                                                text: 'Total Pengeluaran per Kendaraan',
+                                                font: { size: 12, weight: 'bold' }
+                                            }
+                                        },
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true,
+                                                ticks: {
+                                                    callback: function(value) {
+                                                        return 'Rp' + value.toLocaleString('id-ID');
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                            resolve();
+                        } catch (error) {
+                            console.error('Chart error:', error);
+                            resolve();
+                        }
+                    }, 100);
+                });
+            }
+
+            // ==================== TAMBAH PENGELUARAN ====================
+            window.showAddExpenseModal = function() {
+                document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
+                document.getElementById('expenseCost').value = '';
+                document.getElementById('modalExpense').style.display = 'flex';
+                
+                // Re-init format rupiah
+                setTimeout(() => {
+                    initRupiahInput(document.getElementById('expenseCost'));
+                }, 100);
+            };
+
+            document.getElementById('expenseForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Parse biaya dari format rupiah ke number
+                const costInput = document.getElementById('expenseCost');
+                const cost = parseRupiah(costInput.value);
+                
+                if (cost <= 0) {
+                    showAlert('Biaya harus diisi dengan angka yang valid', 'warning');
+                    return;
+                }
+                
+                showLoading(true, 'Menyimpan...');
+                
+                try {
+                    const file = document.getElementById('expensePhoto').files[0];
+                    let photoUrl = null;
+                    
+                    if (file) {
+                        const fileName = `${currentUser.id}/struk/${Date.now()}-${file.name}`;
+                        await sb.storage.from('expense-photos').upload(fileName, file);
+                        const { data } = sb.storage.from('expense-photos').getPublicUrl(fileName);
+                        photoUrl = data.publicUrl;
+                    }
+                    
+                    const newExpense = {
+                        user_id: currentUser.id,
+                        vehicle_id: selectedVehicleId,
+                        date: document.getElementById('expenseDate').value,
+                        type: document.getElementById('expenseType').value,
+                        cost: cost, // Simpan angka asli (tanpa titik)
+                        description: document.getElementById('expenseDesc').value || null,
+                        km: document.getElementById('expenseKm').value || null,
+                        photo_url: photoUrl
+                    };
+                    
+                    const { data } = await sb.from('expenses').insert([newExpense]).select();
+                    
+                    closeModal('modalExpense');
+                    this.reset();
+                    
+                    await reloadData();
+                    
+                    // Auto kirim notifikasi WA ke juragan
+                    await sendExpenseNotification(newExpense);
+                    
+                    showAlert('Pengeluaran dicatat dan notifikasi terkirim ke juragan', 'success');
+                    
+                } catch (error) {
+                    console.error('Add expense error:', error);
+                    showAlert('Gagal menyimpan', 'error');
+                } finally {
+                    showLoading(false);
+                }
+            });
+
+            // ==================== EDIT EXPENSE ====================
+            window.editExpense = function(id) {
+                const expense = expenses.find(e => e.id === id);
+                if (!expense) return;
+                
+                document.getElementById('editExpenseId').value = expense.id;
+                document.getElementById('editExpenseDate').value = expense.date;
+                document.getElementById('editExpenseType').value = expense.type;
+                
+                // Tampilkan biaya dengan format rupiah
+                document.getElementById('editExpenseCost').value = formatRupiah(expense.cost, '').trim();
+                
+                document.getElementById('editExpenseDesc').value = expense.description || '';
+                document.getElementById('editExpenseKm').value = expense.km || '';
+                
+                document.getElementById('modalEditExpense').style.display = 'flex';
+                
+                // Re-init format rupiah
+                setTimeout(() => {
+                    initRupiahInput(document.getElementById('editExpenseCost'));
+                }, 100);
+            };
+
+            document.getElementById('editExpenseForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const id = document.getElementById('editExpenseId').value;
+                const expense = expenses.find(e => e.id == id);
+                
+                // Parse biaya dari format rupiah ke number
+                const costInput = document.getElementById('editExpenseCost');
+                const cost = parseRupiah(costInput.value);
+                
+                if (cost <= 0) {
+                    showAlert('Biaya harus diisi dengan angka yang valid', 'warning');
+                    return;
+                }
+                
+                showLoading(true, 'Mengupdate...');
+                
+                try {
+                    const file = document.getElementById('editExpensePhoto').files[0];
+                    let photoUrl = expense.photo_url;
+                    
+                    if (file) {
+                        const fileName = `${currentUser.id}/struk/${Date.now()}-${file.name}`;
+                        await sb.storage.from('expense-photos').upload(fileName, file);
+                        const { data } = sb.storage.from('expense-photos').getPublicUrl(fileName);
+                        photoUrl = data.publicUrl;
+                    }
+                    
+                    const updates = {
+                        date: document.getElementById('editExpenseDate').value,
+                        type: document.getElementById('editExpenseType').value,
+                        cost: cost, // Simpan angka asli (tanpa titik)
+                        description: document.getElementById('editExpenseDesc').value || null,
+                        km: document.getElementById('editExpenseKm').value || null,
+                        photo_url: photoUrl
+                    };
+                    
+                    await sb.from('expenses').update(updates).eq('id', id);
+                    
+                    closeModal('modalEditExpense');
+                    this.reset();
+                    
+                    await reloadData();
+                    showAlert('Pengeluaran diupdate', 'success');
+                    
+                } catch (error) {
+                    console.error('Edit expense error:', error);
+                    showAlert('Gagal update', 'error');
+                } finally {
+                    showLoading(false);
+                }
+            });
+
+            // ==================== TAMBAH KENDARAAN ====================
+            window.showAddVehicleModal = function() {
+                document.getElementById('modalVehicle').style.display = 'flex';
+            };
+
+            document.getElementById('vehicleForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                showLoading(true, 'Menyimpan...');
+                
+                try {
+                    const file = document.getElementById('vehiclePhoto').files[0];
+                    let photoUrl = null;
+                    
+                    if (file) {
+                        const fileName = `${currentUser.id}/${Date.now()}-${file.name}`;
+                        await sb.storage.from('vehicle-photos').upload(fileName, file);
+                        const { data } = sb.storage.from('vehicle-photos').getPublicUrl(fileName);
+                        photoUrl = data.publicUrl;
+                    }
+                    
+                    const newVehicle = {
+                        user_id: currentUser.id,
+                        name: document.getElementById('vehicleName').value,
+                        plate: document.getElementById('vehiclePlate').value,
+                        year: document.getElementById('vehicleYear').value || null,
+                        photo_url: photoUrl
+                    };
+                    
+                    const { data } = await sb.from('vehicles').insert([newVehicle]).select();
+                    
+                    closeModal('modalVehicle');
+                    this.reset();
+                    
+                    await reloadData();
+                    showAlert('Kendaraan ditambahkan', 'success');
+                    
+                } catch (error) {
+                    console.error('Add vehicle error:', error);
+                    showAlert('Gagal menyimpan', 'error');
+                } finally {
+                    showLoading(false);
+                }
+            });
+
+            // ==================== REMINDER ====================
+            document.getElementById('reminderType').addEventListener('change', function() {
+                const customInput = document.getElementById('reminderCustomName');
+                if (this.value === 'custom') {
+                    customInput.classList.remove('hidden');
+                } else {
+                    customInput.classList.add('hidden');
+                }
+            });
+
+            window.tambahReminder = function() {
+                const vehicleId = document.getElementById('reminderVehicle').value;
+                if (!vehicleId) {
+                    showAlert('Pilih kendaraan', 'warning');
+                    return;
+                }
+                
+                const typeSelect = document.getElementById('reminderType');
+                const periodSelect = document.getElementById('reminderPeriod');
+                const startDate = document.getElementById('reminderStartDate').value;
+                
+                if (!startDate) {
+                    showAlert('Pilih tanggal mulai', 'warning');
+                    return;
+                }
+                
+                let typeLabel = typeSelect.options[typeSelect.selectedIndex].text;
+                if (typeSelect.value === 'custom') {
+                    const customName = document.getElementById('reminderCustomName').value;
+                    if (!customName) {
+                        showAlert('Masukkan nama pengingat kustom', 'warning');
+                        return;
+                    }
+                    typeLabel = customName;
+                }
+                
+                const reminder = {
+                    id: Date.now(),
+                    vehicle_id: parseInt(vehicleId),
+                    type: typeSelect.value,
+                    typeLabel: typeLabel,
+                    period: periodSelect.value,
+                    startDate: startDate,
+                    h7: document.getElementById('reminderH7').checked,
+                    h1: document.getElementById('reminderH1').checked,
+                    h0: document.getElementById('reminderH0').checked
+                };
+                
+                reminders.push(reminder);
+                localStorage.setItem('reminders', JSON.stringify(reminders));
+                renderReminderList();
+                showAlert('Reminder ditambahkan', 'success');
+            };
+
+            function renderReminderDropdown() {
+                const select = document.getElementById('reminderVehicle');
+                let options = '<option value="">Pilih Kendaraan</option>';
+                vehicles.forEach(v => {
+                    options += `<option value="${v.id}">${v.name}</option>`;
+                });
+                select.innerHTML = options;
+            }
+
+            function renderReminderList() {
+                const list = document.getElementById('reminderList');
+                
+                if (reminders.length === 0) {
+                    list.innerHTML = '<p class="text-center text-gray-400 py-4 text-sm">Belum ada pengingat</p>';
+                    return;
+                }
+                
+                let html = '';
+                reminders.forEach(r => {
+                    const v = vehicles.find(v => v.id === r.vehicle_id);
+                    const periodLabels = {
+                        '1_minggu': 'Setiap 1 minggu',
+                        '2_minggu': 'Setiap 2 minggu',
+                        '1_bulan': 'Setiap 1 bulan',
+                        '3_bulan': 'Setiap 3 bulan',
+                        '6_bulan': 'Setiap 6 bulan',
+                        '1_tahun': 'Setiap 1 tahun',
+                        '5_tahun': 'Setiap 5 tahun'
+                    };
+                    
+                    const reminders_active = [];
+                    if (r.h7) reminders_active.push('H-7');
+                    if (r.h1) reminders_active.push('H-1');
+                    if (r.h0) reminders_active.push('H-0');
+                    
+                    html += `
+                        <div class="bg-gray-50 p-3 rounded-lg text-sm">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <span class="font-medium">${v ? v.name : '-'}</span>
+                                    <p class="text-xs text-gray-600 mt-1">${r.typeLabel}</p>
+                                    <p class="text-xs text-gray-500">${periodLabels[r.period] || r.period}</p>
+                                    <p class="text-xs text-gray-500">Mulai: ${formatDate(r.startDate)}</p>
+                                    <p class="text-xs text-gray-400 mt-1">Pengingat: ${reminders_active.join(', ')}</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick='testReminderWA(${JSON.stringify(r)})' class="test-reminder-btn">
+                                        <i class="fab fa-whatsapp"></i> Test WA
+                                    </button>
+                                    <button onclick="hapusReminder(${r.id})" class="text-red-500">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                list.innerHTML = html;
+            }
+
+            window.hapusReminder = function(id) {
+                reminders = reminders.filter(r => r.id !== id);
+                localStorage.setItem('reminders', JSON.stringify(reminders));
+                renderReminderList();
+                showAlert('Reminder dihapus', 'success');
+            };
+
+            // ==================== HAPUS EXPENSE ====================
+            window.hapusExpense = async function(id) {
+                const result = await Swal.fire({
+                    title: 'Hapus?',
+                    text: 'Data akan dihapus permanen',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya',
+                    cancelButtonText: 'Batal'
+                });
+                
+                if (result.isConfirmed) {
+                    showLoading(true, 'Menghapus...');
+                    await sb.from('expenses').delete().eq('id', id);
+                    await reloadData();
+                    showLoading(false);
+                    showAlert('Data dihapus', 'success');
+                }
+            };
+
+            // ==================== LAPOR SEMUA ====================
+            window.laporSemuaKeJuragan = async function() {
+                const juraganPhone = document.getElementById('juraganPhoneNumber').value;
+                
+                if (!juraganPhone) {
+                    showAlert('Nomor juragan belum diisi di menu Konfigurasi', 'warning');
+                    switchTab('config');
+                    return;
+                }
+                
+                const vehicleExpenses = expenses.filter(e => e.vehicle_id === selectedVehicleId);
+                if (vehicleExpenses.length === 0) {
+                    showAlert('Belum ada pengeluaran untuk kendaraan ini', 'info');
+                    return;
+                }
+                
+                const v = vehicles.find(v => v.id === selectedVehicleId);
+                if (!v) return;
+                
+                showLoading(true, 'Mengirim laporan...');
+                
+                let msg = `📊 *LAPORAN LENGKAP ${v.name}*\n\n`;
+                let total = 0;
+                
+                vehicleExpenses.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach((e, i) => {
+                    msg += `${i+1}. ${formatDate(e.date)} - ${e.type}\n   ${formatRupiah(e.cost)}\n`;
+                    if (e.description) msg += `   📝 ${e.description}\n`;
+                    total += e.cost;
+                });
+                
+                msg += `\n💰 *TOTAL: ${formatRupiah(total)}*`;
+                
+                const success = await sendWAviaFonnte(juraganPhone, msg);
+                
+                if (success) {
+                    showAlert('Laporan terkirim ke juragan', 'success');
+                }
+                
+                showLoading(false);
+            };
+
+            // ==================== FOTO ====================
+            window.lihatFoto = function(url) {
+                document.getElementById('photoViewer').src = url;
+                document.getElementById('modalPhoto').style.display = 'flex';
+            };
+
+            // ==================== EDIT VEHICLE ====================
+            window.editVehicle = function(id) {
+                const v = vehicles.find(v => v.id === id);
+                if (!v) return;
+
+                document.getElementById('editVehicleId').value = v.id;
+                document.getElementById('editVehicleName').value = v.name;
+                document.getElementById('editVehiclePlate').value = v.plate;
+                document.getElementById('editVehicleYear').value = v.year || '';
+
+                document.getElementById('modalEditVehicle').style.display = 'flex';
+            };
+
+            document.getElementById('editVehicleForm').addEventListener('submit', async function(e){
+                e.preventDefault();
+
+                const id = document.getElementById('editVehicleId').value;
+                const name = document.getElementById('editVehicleName').value;
+                const plate = document.getElementById('editVehiclePlate').value;
+                const year = document.getElementById('editVehicleYear').value;
+
+                showLoading(true,'Mengupdate kendaraan...');
+
+                try{
+                    await sb.from('vehicles')
+                        .update({ name, plate, year })
+                        .eq('id',id);
+
+                    closeModal('modalEditVehicle');
+                    await reloadData();
+                    showAlert('Kendaraan berhasil diupdate','success');
+                }catch(err){
+                    console.error(err);
+                    showAlert('Gagal update kendaraan','error');
+                }finally{
+                    showLoading(false);
+                }
+            });
+
+            // ==================== HAPUS VEHICLE ====================
+            window.hapusVehicle = async function(id){
+                const result = await Swal.fire({
+                    title:'Hapus kendaraan?',
+                    text:'Semua data kendaraan akan hilang',
+                    icon:'warning',
+                    showCancelButton:true,
+                    confirmButtonText:'Ya Hapus'
+                });
+
+                if(!result.isConfirmed) return;
+
+                showLoading(true,'Menghapus kendaraan...');
+
+                try{
+                    await sb.from('vehicles').delete().eq('id',id);
+                    showVehiclesList();
+                    await reloadData();
+                    showAlert('Kendaraan dihapus','success');
+                }catch(err){
+                    console.error(err);
+                    showAlert('Gagal hapus kendaraan','error');
+                }finally{
+                    showLoading(false);
+                }
+            };
+
+            // ==================== AUTH ====================
+            window.handleLogin = async function() {
+                const email = document.getElementById('loginEmail').value.trim();
+                const password = document.getElementById('loginPassword').value;
+                
+                if (!email || !password) {
+                    showAlert('Email dan password harus diisi', 'warning');
+                    return;
+                }
+                
+                showLoading(true, 'Login...');
+                
+                try {
+                    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                    
+                    currentUser = data.user;
+                    document.getElementById('userEmail').innerText = currentUser.email;
+                    
+                    document.getElementById('authContainer').classList.add('hidden');
+                    document.getElementById('appContainer').classList.remove('hidden');
+                    
+                    await reloadData();
+                    loadConfig();
+                    
+                    showAlert('Login berhasil!', 'success', 2000);
+                    
+                } catch (error) {
+                    console.error('Login error:', error);
+                    let msg = error.message;
+                    if (msg.includes('Invalid login')) msg = 'Email atau password salah';
+                    showAlert(msg, 'error');
+                } finally {
+                    showLoading(false);
+                }
+            };
+
+            window.handleRegister = async function() {
+                const email = document.getElementById('registerEmail').value.trim();
+                const password = document.getElementById('registerPassword').value;
+                const confirm = document.getElementById('registerConfirmPassword').value;
+                
+                if (!email || !password || !confirm) {
+                    showAlert('Semua field harus diisi', 'warning');
+                    return;
+                }
+                
+                if (password.length < 6) {
+                    showAlert('Password minimal 6 karakter', 'warning');
+                    return;
+                }
+                
+                if (password !== confirm) {
+                    showAlert('Password tidak cocok', 'warning');
+                    return;
+                }
+                
+                showLoading(true, 'Mendaftar...');
+                
+                try {
+                    const { error } = await sb.auth.signUp({ email, password });
+                    if (error) throw error;
+                    
+                    showAlert('Registrasi berhasil! Cek email untuk verifikasi', 'success', 3000);
+                    
+                    setTimeout(() => {
+                        showLoginTab();
+                        document.getElementById('loginEmail').value = email;
+                    }, 2000);
+                    
+                } catch (error) {
+                    console.error('Register error:', error);
+                    showAlert(error.message, 'error');
+                } finally {
+                    showLoading(false);
+                }
+            };
+
+            window.handleLogout = async function() {
+                showLoading(true, 'Logout...');
+                await sb.auth.signOut();
+                currentUser = null;
+                document.getElementById('authContainer').classList.remove('hidden');
+                document.getElementById('appContainer').classList.add('hidden');
+                showLoading(false);
+                showAlert('Berhasil logout', 'info', 2000);
+            };
+
+            // ==================== TAB LOGIN/REGISTER ====================
+            window.showLoginTab = function() {
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('registerForm').classList.add('hidden');
+                document.getElementById('tabLoginBtn').classList.add('active');
+                document.getElementById('tabRegisterBtn').classList.remove('active');
+            };
+
+            window.showRegisterTab = function() {
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('registerForm').classList.remove('hidden');
+                document.getElementById('tabLoginBtn').classList.remove('active');
+                document.getElementById('tabRegisterBtn').classList.add('active');
+            };
+
+            // ==================== SWITCH TAB ====================
+            window.switchTab = function(tab) {
+                document.getElementById('contentKendaraan').classList.add('hidden');
+                document.getElementById('contentReminder').classList.add('hidden');
+                document.getElementById('contentConfig').classList.add('hidden');
+                
+                document.getElementById('tabKendaraan').classList.remove('active');
+                document.getElementById('tabReminder').classList.remove('active');
+                document.getElementById('tabConfig').classList.remove('active');
+                
+                if (tab === 'kendaraan') {
+                    document.getElementById('contentKendaraan').classList.remove('hidden');
+                    document.getElementById('tabKendaraan').classList.add('active');
+                } else if (tab === 'reminder') {
+                    document.getElementById('contentReminder').classList.remove('hidden');
+                    document.getElementById('tabReminder').classList.add('active');
+                    renderReminderDropdown();
+                    renderReminderList();
+                } else if (tab === 'config') {
+                    document.getElementById('contentConfig').classList.remove('hidden');
+                    document.getElementById('tabConfig').classList.add('active');
+                    loadConfig();
+                }
+            };
+
+            // ==================== CLICK OUTSIDE MODAL ====================
+            document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                overlay.addEventListener('click', function(e) {
+                    if (e.target === this) this.style.display = 'none';
+                });
+            });
+
+            // ==================== START ====================
+            setTimeout(checkSession, 100);
+        })();
+    </script>
+</body>
+</html>
