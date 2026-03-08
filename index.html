@@ -1583,7 +1583,7 @@
                 const vehicle = vehicles.find(v => v.id === expense.vehicle_id);
                 if (!vehicle) return;
                 
-                let msg = `🚗 *PENGELUARAN BARU DICATAT*\n\n`;
+                let msg = `*PENGELUARAN BARU*\n\n`;
                 msg += `Kendaraan: ${vehicle.name} (${vehicle.plate})\n`;
                 msg += `Tanggal: ${formatDate(expense.date)}\n`;
                 msg += `Jenis: ${expense.type}\n`;
